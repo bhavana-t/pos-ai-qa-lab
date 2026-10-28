@@ -1,0 +1,383 @@
+[
+  {
+    "testcaseId": "TC_001",
+    "requirementId": "R1",
+    "type": "positive",
+    "steps": [
+      "Complete a sale of $120.00 paid fully with a Visa credit card (note last 4 digits)",
+      "Start a refund on the POS and scan the original receipt",
+      "Select all items and complete the refund"
+    ],
+    "expectedResult": "Refund of $120.00 is issued to the same Visa card (last 4 digits match the sale); no option to choose another tender is shown"
+  },
+  {
+    "testcaseId": "TC_002",
+    "requirementId": "R1",
+    "type": "positive",
+    "steps": [
+      "Complete a sale of $45.00 paid with cash",
+      "Start a refund using the original receipt and complete it"
+    ],
+    "expectedResult": "Refund of $45.00 is issued as cash and the cash drawer opens"
+  },
+  {
+    "testcaseId": "TC_003",
+    "requirementId": "R1",
+    "type": "negative",
+    "steps": [
+      "Complete a sale of $80.00 paid with a Mastercard",
+      "Start a refund for the transaction",
+      "Attempt to change the refund tender to cash or a different card"
+    ],
+    "expectedResult": "POS does not allow a tender different from the original; refund can only go to the original Mastercard"
+  },
+  {
+    "testcaseId": "TC_004",
+    "requirementId": "R1",
+    "type": "negative",
+    "steps": [
+      "Start a refund on the POS",
+      "Enter a transaction ID that does not exist"
+    ],
+    "expectedResult": "POS shows 'Original transaction not found'; no refund is processed and no SAP message is sent"
+  },
+  {
+    "testcaseId": "TC_005",
+    "requirementId": "R2",
+    "type": "positive",
+    "steps": [
+      "Use a sale with a purchase date 15 days before today",
+      "Start a refund for the sale and complete it"
+    ],
+    "expectedResult": "Refund is allowed and completes successfully"
+  },
+  {
+    "testcaseId": "TC_006",
+    "requirementId": "R2",
+    "type": "boundary",
+    "steps": [
+      "Complete a sale today",
+      "Start a refund for the same sale on the same day"
+    ],
+    "expectedResult": "Refund is allowed (day 0 is inside the 30-day window)"
+  },
+  {
+    "testcaseId": "TC_007",
+    "requirementId": "R2",
+    "type": "boundary",
+    "steps": [
+      "Use a sale with a purchase date exactly 30 days before today",
+      "Start a refund for the sale"
+    ],
+    "expectedResult": "Refund is allowed (day 30 is inside the window)"
+  },
+  {
+    "testcaseId": "TC_008",
+    "requirementId": "R2",
+    "type": "boundary",
+    "steps": [
+      "Use a sale with a purchase date exactly 31 days before today",
+      "Start a refund for the sale"
+    ],
+    "expectedResult": "Refund is blocked with a message that the 30-day refund window has passed; no SAP message is sent"
+  },
+  {
+    "testcaseId": "TC_009",
+    "requirementId": "R2",
+    "type": "negative",
+    "steps": [
+      "Use a sale with a purchase date 60 days before today",
+      "Start a refund for the sale"
+    ],
+    "expectedResult": "Refund is blocked with a clear error message; transaction state is unchanged"
+  },
+  {
+    "testcaseId": "TC_010",
+    "requirementId": "R3",
+    "type": "positive",
+    "steps": [
+      "Complete a $200.00 sale paid in this order: $50.00 gift card, then $150.00 Visa",
+      "Start a full refund of $200.00 for the sale"
+    ],
+    "expectedResult": "Refund is applied in reverse order: $150.00 to the Visa first, then $50.00 to the gift card"
+  },
+  {
+    "testcaseId": "TC_011",
+    "requirementId": "R3",
+    "type": "positive",
+    "steps": [
+      "Complete a $200.00 sale paid in this order: $50.00 gift card, then $150.00 Visa",
+      "Refund one line item worth $100.00"
+    ],
+    "expectedResult": "Entire $100.00 goes to the Visa (last tender paid); gift card is not credited"
+  },
+  {
+    "testcaseId": "TC_012",
+    "requirementId": "R3",
+    "type": "boundary",
+    "steps": [
+      "Complete a $200.00 sale paid in this order: $50.00 gift card, then $150.00 Visa",
+      "Refund line items totaling $160.00"
+    ],
+    "expectedResult": "$150.00 goes to the Visa (fully used up) and the remaining $10.00 goes to the gift card"
+  },
+  {
+    "testcaseId": "TC_013",
+    "requirementId": "R3",
+    "type": "positive",
+    "steps": [
+      "Complete a $300.00 sale paid in this order: $100.00 cash, $100.00 gift card, $100.00 Mastercard",
+      "Start a full refund of $300.00"
+    ],
+    "expectedResult": "Refund order is Mastercard $100.00, then gift card $100.00, then cash $100.00"
+  },
+  {
+    "testcaseId": "TC_014",
+    "requirementId": "R4",
+    "type": "positive",
+    "steps": [
+      "Complete a sale with 3 line items ($40.00, $60.00, $100.00) paid by Visa",
+      "Refund only the $60.00 line item"
+    ],
+    "expectedResult": "Refund of $60.00 is processed; the other 2 items remain refundable"
+  },
+  {
+    "testcaseId": "TC_015",
+    "requirementId": "R4",
+    "type": "boundary",
+    "steps": [
+      "Complete a sale with 3 line items ($40.00, $60.00, $100.00) paid by Visa",
+      "Refund each line item in 3 separate refunds"
+    ],
+    "expectedResult": "All 3 refunds succeed; total refunded equals exactly $200.00, the original amount"
+  },
+  {
+    "testcaseId": "TC_016",
+    "requirementId": "R4",
+    "type": "negative",
+    "steps": [
+      "Complete a $200.00 sale and fully refund it",
+      "Start another refund on the same original transaction"
+    ],
+    "expectedResult": "POS blocks the refund with a message that the transaction is already fully refunded"
+  },
+  {
+    "testcaseId": "TC_017",
+    "requirementId": "R4",
+    "type": "boundary",
+    "steps": [
+      "Complete a $200.00 sale and refund $150.00 of it",
+      "Attempt a manual-amount refund of $50.01 on the same transaction"
+    ],
+    "expectedResult": "Refund is blocked because it would exceed the original amount by $0.01; $50.00 is shown as the maximum remaining"
+  },
+  {
+    "testcaseId": "TC_018",
+    "requirementId": "R4",
+    "type": "negative",
+    "steps": [
+      "Complete a $200.00 sale",
+      "Attempt a manual-amount refund of $250.00 on the transaction"
+    ],
+    "expectedResult": "Refund is blocked; amount cannot exceed the original $200.00"
+  },
+  {
+    "testcaseId": "TC_019",
+    "requirementId": "R5",
+    "type": "boundary",
+    "steps": [
+      "Complete a $500.00 sale",
+      "Start a full refund of $500.00"
+    ],
+    "expectedResult": "Refund completes without a manager approval prompt ($500.00 is not over $500)"
+  },
+  {
+    "testcaseId": "TC_020",
+    "requirementId": "R5",
+    "type": "boundary",
+    "steps": [
+      "Complete a $500.01 sale",
+      "Start a full refund of $500.01"
+    ],
+    "expectedResult": "POS prompts for manager approval before the refund can complete"
+  },
+  {
+    "testcaseId": "TC_021",
+    "requirementId": "R5",
+    "type": "positive",
+    "steps": [
+      "Complete a $750.00 sale",
+      "Start a full refund",
+      "Manager enters valid credentials and approves"
+    ],
+    "expectedResult": "Refund completes; manager ID is recorded on the refund transaction"
+  },
+  {
+    "testcaseId": "TC_022",
+    "requirementId": "R5",
+    "type": "negative",
+    "steps": [
+      "Complete a $750.00 sale",
+      "Start a full refund",
+      "Manager declines the approval"
+    ],
+    "expectedResult": "Refund is cancelled; no money is returned and no SAP message is sent"
+  },
+  {
+    "testcaseId": "TC_023",
+    "requirementId": "R5",
+    "type": "negative",
+    "steps": [
+      "Complete a $750.00 sale",
+      "Start a full refund",
+      "At the approval prompt, enter credentials of a non-manager (cashier) user"
+    ],
+    "expectedResult": "Approval is rejected with an 'insufficient permissions' message; refund does not complete"
+  },
+  {
+    "testcaseId": "TC_024",
+    "requirementId": "R6",
+    "type": "positive",
+    "steps": [
+      "Complete a $90.00 sale paid by a Visa card",
+      "Mark the Visa card as expired in the test environment",
+      "Start a full refund"
+    ],
+    "expectedResult": "Refund of $90.00 is issued as store credit; customer receives store credit details"
+  },
+  {
+    "testcaseId": "TC_025",
+    "requirementId": "R6",
+    "type": "positive",
+    "steps": [
+      "Complete a $90.00 sale paid by a debit card",
+      "Mark the card account as closed in the test environment",
+      "Start a full refund"
+    ],
+    "expectedResult": "Refund of $90.00 is issued as store credit"
+  },
+  {
+    "testcaseId": "TC_026",
+    "requirementId": "R6",
+    "type": "negative",
+    "steps": [
+      "Complete a $90.00 sale paid by an active Visa card",
+      "Start a full refund"
+    ],
+    "expectedResult": "Refund goes to the original Visa; store credit is NOT issued"
+  },
+  {
+    "testcaseId": "TC_027",
+    "requirementId": "R6",
+    "type": "positive",
+    "steps": [
+      "Complete a $200.00 sale paid in this order: $50.00 gift card, then $150.00 Visa",
+      "Mark the Visa card as expired",
+      "Start a full refund"
+    ],
+    "expectedResult": "$150.00 Visa portion is issued as store credit, then $50.00 goes back to the gift card"
+  },
+  {
+    "testcaseId": "TC_028",
+    "requirementId": "R7",
+    "type": "positive",
+    "steps": [
+      "Complete a $120.00 Visa sale at store S001 and note the transaction ID",
+      "Process a full refund and note the refundId and refund time",
+      "Query SAP for the refund message"
+    ],
+    "expectedResult": "SAP has 1 message within 5 minutes containing refundId, originalTxnId, amount=120.00, tenderType=VISA, storeId=S001 and timestamp, all matching POS values"
+  },
+  {
+    "testcaseId": "TC_029",
+    "requirementId": "R7",
+    "type": "boundary",
+    "steps": [
+      "Process a refund and record the POS refund completion time",
+      "Record the time SAP receives the message"
+    ],
+    "expectedResult": "Difference between POS refund time and SAP receipt time is 5 minutes (300 seconds) or less"
+  },
+  {
+    "testcaseId": "TC_030",
+    "requirementId": "R7",
+    "type": "positive",
+    "steps": [
+      "Process a refund that is issued as store credit (expired card scenario)",
+      "Check the SAP refund message"
+    ],
+    "expectedResult": "tenderType in the SAP message is STORE_CREDIT, not the original card type"
+  },
+  {
+    "testcaseId": "TC_031",
+    "requirementId": "R7",
+    "type": "positive",
+    "steps": [
+      "Refund a split-tender sale ($50.00 gift card + $150.00 Visa)",
+      "Check the SAP refund message(s)"
+    ],
+    "expectedResult": "SAP data shows both tenders with correct amounts ($150.00 VISA, $50.00 GIFT_CARD) and same originalTxnId"
+  },
+  {
+    "testcaseId": "TC_032",
+    "requirementId": "R7",
+    "type": "negative",
+    "steps": [
+      "Process a card refund",
+      "Inspect the raw SAP refund message payload"
+    ],
+    "expectedResult": "No mandatory field is null or empty, and no full card number appears in the message"
+  },
+  {
+    "testcaseId": "TC_033",
+    "requirementId": "R8",
+    "type": "positive",
+    "steps": [
+      "Configure SAP stub to fail the first send attempt, then succeed",
+      "Process a refund"
+    ],
+    "expectedResult": "POS retries once and SAP receives exactly 1 message (no duplicate); no error log entry is written"
+  },
+  {
+    "testcaseId": "TC_034",
+    "requirementId": "R8",
+    "type": "boundary",
+    "steps": [
+      "Configure SAP stub to fail the first send and the first 2 retries, then succeed on the 3rd retry",
+      "Process a refund"
+    ],
+    "expectedResult": "Message is delivered on the 3rd retry; no error log entry is written"
+  },
+  {
+    "testcaseId": "TC_035",
+    "requirementId": "R8",
+    "type": "boundary",
+    "steps": [
+      "Configure SAP stub to fail all send attempts",
+      "Process a refund",
+      "Count send attempts in POS logs"
+    ],
+    "expectedResult": "POS makes 1 initial send plus exactly 3 retries (4 attempts total), then stops; no 5th attempt is made"
+  },
+  {
+    "testcaseId": "TC_036",
+    "requirementId": "R8",
+    "type": "negative",
+    "steps": [
+      "Configure SAP stub to fail all send attempts",
+      "Process a refund",
+      "Check the POS error log after the 3rd retry fails"
+    ],
+    "expectedResult": "One error log entry is written containing refundId, originalTxnId, failure reason and timestamp"
+  },
+  {
+    "testcaseId": "TC_037",
+    "requirementId": "R8",
+    "type": "negative",
+    "steps": [
+      "Make SAP unreachable (network down)",
+      "Process a refund at the register"
+    ],
+    "expectedResult": "Customer refund still completes at the register; SAP failure is handled only through retries and the error log"
+  }
+]

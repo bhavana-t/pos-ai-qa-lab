@@ -1,0 +1,325 @@
+{
+  "test_cases": [
+    {
+      "id": "TC-001",
+      "requirement_id": "R1",
+      "type": "positive",
+      "title": "Full refund of a Visa sale goes back to the same Visa card",
+      "preconditions": ["Store S-0412, register REG-03, cashier logged in", "Sale TXN-2001 on 2026-10-20: Line 1 Wireless Mouse $85.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2001", "2. Select Line 1 Wireless Mouse ($85.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; refund receipt shows $85.00 to Visa ending 1111; no cash dispensed and no store credit issued"
+    },
+    {
+      "id": "TC-002",
+      "requirement_id": "R1",
+      "type": "positive",
+      "title": "Full refund of a cash sale is paid out in cash",
+      "preconditions": ["Store S-0412, register REG-03, cashier logged in", "Sale TXN-2002 on 2026-10-25: Line 1 USB-C Cable $25.00, paid in cash"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2002", "2. Select Line 1 USB-C Cable ($25.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; cash drawer opens and the receipt shows $25.00 refunded to cash; no card credit and no store credit issued"
+    },
+    {
+      "id": "TC-003",
+      "requirement_id": "R1",
+      "type": "negative",
+      "title": "Card sale cannot be refunded to cash",
+      "preconditions": ["Store S-0412, register REG-03, cashier logged in", "Sale TXN-2003 on 2026-10-22: Line 1 Phone Case $40.00, paid by Mastercard ending 2222 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2003", "2. Select Line 1 Phone Case ($40.00)", "3. Try to choose Cash as the refund tender", "4. Confirm the refund"],
+      "expected": "POS does not accept Cash as the refund tender for TXN-2003; the completed refund shows $40.00 to Mastercard ending 2222; cash drawer does not open for a payout"
+    },
+    {
+      "id": "TC-004",
+      "requirement_id": "R2",
+      "type": "positive",
+      "title": "Refund is allowed 10 days after purchase",
+      "preconditions": ["Test date 2026-10-28", "Sale TXN-2004 on 2026-10-18: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2004", "2. Select Line 1 Keyboard ($60.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $60.00 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-005",
+      "requirement_id": "R2",
+      "type": "boundary",
+      "title": "Refund is allowed on the purchase date (day 0)",
+      "preconditions": ["Test date 2026-10-28", "Sale TXN-2005 on 2026-10-28: Line 1 Screen Protector $29.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2005", "2. Select Line 1 Screen Protector ($29.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $29.00 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-006",
+      "requirement_id": "R2",
+      "type": "boundary",
+      "title": "Refund is allowed 29 days after purchase",
+      "preconditions": ["Test date 2026-10-28", "Sale TXN-2006 on 2026-09-29: Line 1 Headphones $75.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2006", "2. Select Line 1 Headphones ($75.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $75.00 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-007",
+      "requirement_id": "R2",
+      "type": "boundary",
+      "title": "Refund is blocked 31 days after purchase",
+      "preconditions": ["Test date 2026-10-28", "Sale TXN-2007 on 2026-09-27: Line 1 Headphones $75.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2007", "2. Select Line 1 Headphones ($75.00)", "3. Try to confirm the refund"],
+      "expected": "POS does not complete the refund; no money is returned to Visa ending 1111; no refund message for TXN-2007 reaches SAP"
+    },
+    {
+      "id": "TC-008",
+      "requirement_id": "R2",
+      "type": "negative",
+      "title": "Refund is blocked well outside the 30-day window",
+      "preconditions": ["Test date 2026-10-28", "Sale TXN-2008 on 2026-08-15: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2008", "2. Select Line 1 Keyboard ($60.00)", "3. Try to confirm the refund"],
+      "expected": "POS does not complete the refund; no money is returned to Visa ending 1111; no refund message for TXN-2008 reaches SAP"
+    },
+    {
+      "id": "TC-009",
+      "requirement_id": "R3",
+      "type": "positive",
+      "title": "Full refund of a two-tender sale refunds the last tender first",
+      "preconditions": ["Sale TXN-2009 on 2026-10-20 for $100.00: paid first $30.00 cash, then $70.00 Visa ending 1111 (card valid)", "Line 1 Smart Speaker $100.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2009", "2. Select Line 1 Smart Speaker ($100.00)", "3. Confirm the refund"],
+      "expected": "Refund receipt and transaction log show $70.00 to Visa ending 1111 first, then $30.00 cash; total refunded $100.00"
+    },
+    {
+      "id": "TC-010",
+      "requirement_id": "R3",
+      "type": "positive",
+      "title": "Full refund of a three-tender sale follows exact reverse payment order",
+      "preconditions": ["Sale TXN-2010 on 2026-10-21 for $100.00: paid first $50.00 Mastercard ending 2222, then $20.00 cash, then $30.00 Visa ending 1111 (both cards valid)", "Line 1 Smart Speaker $100.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2010", "2. Select Line 1 Smart Speaker ($100.00)", "3. Confirm the refund"],
+      "expected": "Refund receipt and transaction log show, in this order: $30.00 to Visa ending 1111, $20.00 cash, $50.00 to Mastercard ending 2222"
+    },
+    {
+      "id": "TC-011",
+      "requirement_id": "R3",
+      "type": "negative",
+      "title": "Partial refund on a split sale does not touch the first-paid tender",
+      "preconditions": ["Sale TXN-2011 on 2026-10-20 for $100.00: paid first $30.00 cash, then $70.00 Visa ending 1111 (card valid)", "Line 1 Charger $40.00, Line 2 Speaker $60.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2011", "2. Select Line 1 Charger ($40.00) only", "3. Confirm the refund"],
+      "expected": "Refund receipt shows $40.00 to Visa ending 1111; $0.00 cash refunded; cash drawer does not open for a payout"
+    },
+    {
+      "id": "TC-012",
+      "requirement_id": "R3",
+      "type": "boundary",
+      "title": "Partial refund equal to the last tender's amount goes entirely to that tender",
+      "preconditions": ["Sale TXN-2012 on 2026-10-20 for $100.00: paid first $30.00 cash, then $70.00 Visa ending 1111 (card valid)", "Line 1 Speaker $70.00, Line 2 Case $30.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2012", "2. Select Line 1 Speaker ($70.00) only", "3. Confirm the refund"],
+      "expected": "Refund receipt shows $70.00 to Visa ending 1111 and $0.00 cash"
+    },
+    {
+      "id": "TC-013",
+      "requirement_id": "R3",
+      "type": "boundary",
+      "title": "Partial refund one cent over the last tender's amount spills into the earlier tender",
+      "preconditions": ["Sale TXN-2013 on 2026-10-20 for $100.00: paid first $30.00 cash, then $70.00 Visa ending 1111 (card valid)", "Line 1 Speaker $70.01, Line 2 Case $29.99"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2013", "2. Select Line 1 Speaker ($70.01) only", "3. Confirm the refund"],
+      "expected": "Refund receipt shows $70.00 to Visa ending 1111 first, then $0.01 cash; total refunded $70.01"
+    },
+    {
+      "id": "TC-014",
+      "requirement_id": "R4",
+      "type": "positive",
+      "title": "Single line item can be refunded on its own",
+      "preconditions": ["Sale TXN-2014 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 USB-C Cable $19.00, Line 2 Phone Case $49.00, Line 3 Screen Protector $29.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2014", "2. Select Line 2 Phone Case ($49.00) only", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $49.00 refunded to Visa ending 1111; Lines 1 and 3 still show as not refunded on TXN-2014"
+    },
+    {
+      "id": "TC-015",
+      "requirement_id": "R4",
+      "type": "positive",
+      "title": "Second partial refund on the same sale is allowed when the total stays under the original",
+      "preconditions": ["Sale TXN-2015 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 USB-C Cable $19.00, Line 2 Phone Case $49.00, Line 3 Screen Protector $29.00", "Line 2 ($49.00) already refunded on 2026-10-22"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2015", "2. Select Line 1 USB-C Cable ($19.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $19.00 refunded to Visa ending 1111; TXN-2015 shows total refunded $68.00 of $97.00"
+    },
+    {
+      "id": "TC-016",
+      "requirement_id": "R4",
+      "type": "boundary",
+      "title": "Final partial refund that brings total refunded exactly to the original amount is allowed",
+      "preconditions": ["Sale TXN-2016 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 $19.00, Line 2 $49.00, Line 3 $29.00", "Lines 1 and 2 ($68.00) already refunded"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2016", "2. Select Line 3 Screen Protector ($29.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved; $29.00 refunded to Visa ending 1111; TXN-2016 shows total refunded $97.00 of $97.00"
+    },
+    {
+      "id": "TC-017",
+      "requirement_id": "R4",
+      "type": "negative",
+      "title": "A line item that was already refunded cannot be refunded again",
+      "preconditions": ["Sale TXN-2017 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 $19.00, Line 2 $49.00, Line 3 $29.00", "Line 2 ($49.00) already refunded"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2017", "2. Try to select Line 2 Phone Case ($49.00)", "3. Try to confirm the refund"],
+      "expected": "POS does not refund Line 2 a second time; no additional money goes to Visa ending 1111; TXN-2017 total refunded stays $49.00"
+    },
+    {
+      "id": "TC-018",
+      "requirement_id": "R4",
+      "type": "negative",
+      "title": "No further refund is allowed after a sale is fully refunded",
+      "preconditions": ["Sale TXN-2018 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 $19.00, Line 2 $49.00, Line 3 $29.00", "All three lines ($97.00) already refunded"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2018", "2. Try to select Line 1 USB-C Cable ($19.00)", "3. Try to confirm the refund"],
+      "expected": "POS does not complete any refund; no money goes to Visa ending 1111; TXN-2018 total refunded stays $97.00"
+    },
+    {
+      "id": "TC-019",
+      "requirement_id": "R5",
+      "type": "positive",
+      "title": "Refund over $500 completes after manager approval at the register",
+      "preconditions": ["Sale TXN-2019 on 2026-10-26: Line 1 Tablet $650.00, paid by Visa ending 1111 (card valid)", "Manager MGR-07 present at REG-03"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2019", "2. Select Line 1 Tablet ($650.00)", "3. Confirm the refund", "4. When the manager approval prompt appears, MGR-07 approves at the register"],
+      "expected": "POS shows a manager approval prompt before completing; after approval, POS shows refund approved and $650.00 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-020",
+      "requirement_id": "R5",
+      "type": "negative",
+      "title": "Refund over $500 is not completed without manager approval",
+      "preconditions": ["Sale TXN-2020 on 2026-10-26: Line 1 Tablet $650.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2020", "2. Select Line 1 Tablet ($650.00)", "3. Confirm the refund", "4. At the manager approval prompt, cancel without manager approval"],
+      "expected": "POS does not complete the refund; no money goes to Visa ending 1111; no refund message for TXN-2020 reaches SAP"
+    },
+    {
+      "id": "TC-021",
+      "requirement_id": "R5",
+      "type": "boundary",
+      "title": "Refund of $499.99 needs no manager approval",
+      "preconditions": ["Sale TXN-2021 on 2026-10-26: Line 1 Monitor $499.99, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2021", "2. Select Line 1 Monitor ($499.99)", "3. Confirm the refund"],
+      "expected": "No manager approval prompt appears; POS shows refund approved and $499.99 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-022",
+      "requirement_id": "R5",
+      "type": "boundary",
+      "title": "Refund of exactly $500.00 needs no manager approval",
+      "preconditions": ["Sale TXN-2022 on 2026-10-26: Line 1 Monitor $500.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2022", "2. Select Line 1 Monitor ($500.00)", "3. Confirm the refund"],
+      "expected": "No manager approval prompt appears; POS shows refund approved and $500.00 refunded to Visa ending 1111"
+    },
+    {
+      "id": "TC-023",
+      "requirement_id": "R5",
+      "type": "boundary",
+      "title": "Refund of $500.01 requires manager approval",
+      "preconditions": ["Sale TXN-2023 on 2026-10-26: Line 1 Monitor $500.01, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2023", "2. Select Line 1 Monitor ($500.01)", "3. Confirm the refund"],
+      "expected": "POS shows the manager approval prompt and does not complete the refund until a manager approves"
+    },
+    {
+      "id": "TC-024",
+      "requirement_id": "R6",
+      "type": "positive",
+      "title": "Refund to an expired original card is issued as store credit",
+      "preconditions": ["Sale TXN-2024 on 2026-09-30: Line 1 Wireless Mouse $85.00, paid by Visa ending 3333", "Visa ending 3333 expired 09/2026 (test card set up as expired in the payment test environment)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2024", "2. Select Line 1 Wireless Mouse ($85.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved as store credit; $85.00 store credit issued; no money goes to Visa ending 3333"
+    },
+    {
+      "id": "TC-025",
+      "requirement_id": "R6",
+      "type": "positive",
+      "title": "Refund to a closed original card is issued as store credit",
+      "preconditions": ["Sale TXN-2025 on 2026-10-15: Line 1 Wireless Mouse $85.00, paid by Mastercard ending 4444", "Mastercard ending 4444 set up as closed in the payment test environment"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2025", "2. Select Line 1 Wireless Mouse ($85.00)", "3. Confirm the refund"],
+      "expected": "POS shows refund approved as store credit; $85.00 store credit issued; no money goes to Mastercard ending 4444"
+    },
+    {
+      "id": "TC-026",
+      "requirement_id": "R6",
+      "type": "negative",
+      "title": "Refund to a valid original card is not converted to store credit",
+      "preconditions": ["Sale TXN-2026 on 2026-10-15: Line 1 Wireless Mouse $85.00, paid by Visa ending 1111 (card valid, expires 12/2028)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2026", "2. Select Line 1 Wireless Mouse ($85.00)", "3. Confirm the refund"],
+      "expected": "POS shows $85.00 refunded to Visa ending 1111; no store credit issued"
+    },
+    {
+      "id": "TC-027",
+      "requirement_id": "R7",
+      "type": "positive",
+      "title": "SAP refund message for a full refund contains all six required fields with correct values",
+      "preconditions": ["Store S-0412, register REG-03", "SAP endpoint or test stub up and recording received messages", "Sale TXN-2027 on 2026-10-20: Line 1 Wireless Mouse $85.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2027", "2. Select Line 1 Wireless Mouse ($85.00)", "3. Confirm the refund and note the refund ID and time on the receipt", "4. Open the refund message received by SAP for TXN-2027"],
+      "expected": "SAP message contains refundId equal to the receipt's refund ID, originalTxnId TXN-2027, amount 85.00, tenderType for Visa, storeId S-0412, and a timestamp matching the refund time on the receipt"
+    },
+    {
+      "id": "TC-028",
+      "requirement_id": "R7",
+      "type": "positive",
+      "title": "SAP refund message for a partial refund carries the partial amount",
+      "preconditions": ["SAP endpoint or test stub up and recording received messages", "Sale TXN-2028 on 2026-10-20 for $97.00 paid by Visa ending 1111 (card valid): Line 1 $19.00, Line 2 $49.00, Line 3 $29.00"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2028", "2. Select Line 2 Phone Case ($49.00) only", "3. Confirm the refund", "4. Open the refund message received by SAP for TXN-2028"],
+      "expected": "SAP message shows amount 49.00 (not 97.00) and originalTxnId TXN-2028; refundId, tenderType, storeId S-0412 and timestamp are all present"
+    },
+    {
+      "id": "TC-029",
+      "requirement_id": "R7",
+      "type": "boundary",
+      "title": "SAP receives the refund message no later than 5 minutes after the refund",
+      "preconditions": ["SAP endpoint or test stub up, recording the time each message is received", "POS and SAP stub clocks synced", "Sale TXN-2029 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2029", "2. Select Line 1 Keyboard ($60.00)", "3. Confirm the refund and record the confirmation time T0", "4. Record the time T1 when SAP receives the refund message for TXN-2029"],
+      "expected": "T1 minus T0 is 300 seconds or less; the message's timestamp field equals the refund time"
+    },
+    {
+      "id": "TC-030",
+      "requirement_id": "R7",
+      "type": "negative",
+      "title": "No SAP refund message is sent when the refund is cancelled before confirmation",
+      "preconditions": ["SAP endpoint or test stub up and recording received messages", "Sale TXN-2030 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Start a refund and scan the receipt for TXN-2030", "2. Select Line 1 Keyboard ($60.00)", "3. Cancel the refund before confirming", "4. Watch SAP messages for 10 minutes"],
+      "expected": "No refund message with originalTxnId TXN-2030 reaches SAP; no money goes to Visa ending 1111"
+    },
+    {
+      "id": "TC-031",
+      "requirement_id": "R8",
+      "type": "positive",
+      "title": "Refund message is delivered on the first retry after one SAP failure, with no error log",
+      "preconditions": ["SAP test stub set to fail the first send and accept the next one, logging every attempt", "Sale TXN-2031 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Refund Line 1 Keyboard ($60.00) on TXN-2031 and confirm", "2. Check the SAP stub's attempt log for TXN-2031", "3. Check the POS error log"],
+      "expected": "SAP stub shows 2 attempts (1 failed, 1 accepted) for TXN-2031; no error log entry for TXN-2031"
+    },
+    {
+      "id": "TC-032",
+      "requirement_id": "R8",
+      "type": "boundary",
+      "title": "Refund message is delivered on the third and last retry, with no error log",
+      "preconditions": ["SAP test stub set to fail the first 3 sends and accept the 4th, logging every attempt", "Sale TXN-2032 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Refund Line 1 Keyboard ($60.00) on TXN-2032 and confirm", "2. Check the SAP stub's attempt log for TXN-2032", "3. Check the POS error log"],
+      "expected": "SAP stub shows 4 attempts (initial send + 3 retries), the 4th accepted; no error log entry for TXN-2032"
+    },
+    {
+      "id": "TC-033",
+      "requirement_id": "R8",
+      "type": "boundary",
+      "title": "After 3 failed retries POS stops retrying and writes an error log entry",
+      "preconditions": ["SAP test stub set to fail every send, logging every attempt", "Sale TXN-2033 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Refund Line 1 Keyboard ($60.00) on TXN-2033 and confirm", "2. Wait 15 minutes", "3. Check the SAP stub's attempt log for TXN-2033", "4. Check the POS error log"],
+      "expected": "SAP stub shows exactly 4 attempts (initial send + 3 retries) and no 5th attempt; POS error log has exactly one entry for the failed refund message for TXN-2033"
+    },
+    {
+      "id": "TC-034",
+      "requirement_id": "R8",
+      "type": "negative",
+      "title": "No retries and no error log when the first SAP send succeeds",
+      "preconditions": ["SAP test stub set to accept every send, logging every attempt", "Sale TXN-2034 on 2026-10-20: Line 1 Keyboard $60.00, paid by Visa ending 1111 (card valid)"],
+      "steps": ["1. Refund Line 1 Keyboard ($60.00) on TXN-2034 and confirm", "2. Check the SAP stub's attempt log for TXN-2034", "3. Check the POS error log"],
+      "expected": "SAP stub shows exactly 1 attempt for TXN-2034; no error log entry for TXN-2034"
+    }
+  ],
+  "open_questions": [
+    "R2: Is day 30 after purchase inside or outside the window? A boundary test for a sale dated 2026-09-28 (test date 2026-10-28) will be added once this is answered.",
+    "R2: Are the 30 days calendar days in the store's local time zone, and is the purchase date counted as day 0?",
+    "R2: What should the POS show or offer when a refund is outside 30 days (hard block, store credit, manager override)?",
+    "R1: Can a cashier or manager ever override the refund tender (for example card sale refunded to cash)?",
+    "R3: For a partial refund on a split-tender sale, is 'reverse order' applied by filling the last tender up to its paid amount before moving to the earlier one (as assumed in TC-011 to TC-013)?",
+    "R3/R6: In a split-tender sale where one card is expired or closed, is only that card's portion converted to store credit?",
+    "R4: Does 'original amount' include tax? Are partial refunds allowed by quantity within a line, or only whole lines?",
+    "R5: Is the $500 limit checked per refund transaction or on the cumulative refunded total for the sale? Is it before or after tax?",
+    "R6: How does the POS learn that a card is expired or closed (card expiry on file, processor decline response, other)?",
+    "R7: What is the exact tenderType value for each tender, including store credit? For split-tender refunds, is one SAP message sent per tender or one for the whole refund?",
+    "R7: What is the required timestamp format and time zone, and is the 5 minutes measured from refund confirmation?",
+    "R8: Does '3 retries' mean 1 initial send + 3 retries (4 attempts, as assumed in TC-032/TC-033)? What is the interval between retries, and must retries also finish within the 5-minute window from R7?",
+    "R8: What must the error log entry contain, and is the refund still completed for the customer when the SAP send ultimately fails?"
+  ]
+}
