@@ -1,0 +1,558 @@
+{
+  "test_cases": [
+    {
+      "id": "TC-001",
+      "requirement_ids": ["R1"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Full refund returns money to the original Mastercard",
+      "preconditions": ["Sale TXN-2001 completed on 2026-10-20 at STR-0042, paid in full by MC_VALID", "Tester is at REG-03"],
+      "test_data": {"txn": "TXN-2001", "items": [{"sku": "SKU-101", "qty": 1, "price": 80.00}], "tender": "MC_VALID", "amount": 80.00},
+      "steps": ["Scan receipt for TXN-2001", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund for TXN-2001 as completed",
+        "$80.00 refunded to MC_VALID",
+        "No store credit issued",
+        "No cash issued"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-002",
+      "requirement_ids": ["R1"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "Refund cannot be redirected to a tender other than the original Visa",
+      "preconditions": ["Sale TXN-2002 completed on 2026-10-21 at STR-0042, paid in full by VISA_VALID", "Tester is at REG-03"],
+      "test_data": {"txn": "TXN-2002", "items": [{"sku": "SKU-102", "qty": 1, "price": 60.00}], "original_tender": "VISA_VALID", "attempted_tender": "MC_VALID", "amount": 60.00},
+      "steps": ["Scan receipt for TXN-2002", "Select full refund", "Attempt to change the refund tender to MC_VALID", "Confirm refund"],
+      "expected": [
+        "POS does not offer MC_VALID as a refund tender, or rejects the selection",
+        "$60.00 refunded to VISA_VALID",
+        "$0.00 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-003",
+      "requirement_ids": ["R2"],
+      "type": "positive",
+      "priority": "P2",
+      "title": "Refund 7 days after purchase is allowed",
+      "preconditions": ["Sale TXN-2003 completed on 2026-10-25 at STR-0042, paid by MC_VALID", "POS date is 2026-11-01"],
+      "test_data": {"txn": "TXN-2003", "purchase_date": "2026-10-25", "refund_date": "2026-11-01", "days_since_purchase": 7, "items": [{"sku": "SKU-103", "qty": 1, "price": 45.00}], "tender": "MC_VALID", "amount": 45.00},
+      "steps": ["Scan receipt for TXN-2003", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund for TXN-2003 as completed",
+        "$45.00 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-004",
+      "requirement_ids": ["R2"],
+      "type": "negative",
+      "priority": "P2",
+      "title": "Refund 47 days after purchase is blocked",
+      "preconditions": ["Sale TXN-2004 completed on 2026-09-15 at STR-0042, paid by VISA_VALID", "POS date is 2026-11-01", "Assumption: an out-of-window refund is blocked with no alternative offered (Q-02)"],
+      "test_data": {"txn": "TXN-2004", "purchase_date": "2026-09-15", "refund_date": "2026-11-01", "days_since_purchase": 47, "items": [{"sku": "SKU-104", "qty": 1, "price": 35.00}], "tender": "VISA_VALID", "amount": 35.00},
+      "steps": ["Scan receipt for TXN-2004", "Select full refund", "Attempt to confirm refund"],
+      "expected": [
+        "POS blocks the refund and shows that the 30-day refund window has passed",
+        "$0.00 refunded to VISA_VALID",
+        "No store credit issued"
+      ],
+      "linked_questions": ["Q-02"]
+    },
+    {
+      "id": "TC-005",
+      "requirement_ids": ["R2"],
+      "type": "boundary",
+      "priority": "P2",
+      "title": "Refund on day 29 (just below 30-day limit) is allowed",
+      "preconditions": ["Sale TXN-2005 completed on 2026-10-03 at STR-0042, paid by MC_VALID", "POS date is 2026-11-01"],
+      "test_data": {"txn": "TXN-2005", "purchase_date": "2026-10-03", "refund_date": "2026-11-01", "days_since_purchase": 29, "items": [{"sku": "SKU-105", "qty": 1, "price": 20.00}], "tender": "MC_VALID", "amount": 20.00},
+      "steps": ["Scan receipt for TXN-2005", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund for TXN-2005 as completed",
+        "$20.00 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-006",
+      "requirement_ids": ["R2"],
+      "type": "boundary",
+      "priority": "P2",
+      "title": "Refund on day 30 (at the limit) is allowed",
+      "preconditions": ["Sale TXN-2006 completed on 2026-10-02 at STR-0042, paid by MC_VALID", "POS date is 2026-11-01", "Assumption: day 30 is inside the window (inclusive) (Q-01)"],
+      "test_data": {"txn": "TXN-2006", "purchase_date": "2026-10-02", "refund_date": "2026-11-01", "days_since_purchase": 30, "items": [{"sku": "SKU-106", "qty": 1, "price": 20.00}], "tender": "MC_VALID", "amount": 20.00},
+      "steps": ["Scan receipt for TXN-2006", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund for TXN-2006 as completed",
+        "$20.00 refunded to MC_VALID"
+      ],
+      "linked_questions": ["Q-01"]
+    },
+    {
+      "id": "TC-007",
+      "requirement_ids": ["R2"],
+      "type": "boundary",
+      "priority": "P2",
+      "title": "Refund on day 31 (just above 30-day limit) is blocked",
+      "preconditions": ["Sale TXN-2007 completed on 2026-10-01 at STR-0042, paid by MC_VALID", "POS date is 2026-11-01", "Assumption: an out-of-window refund is blocked with no alternative offered (Q-02)"],
+      "test_data": {"txn": "TXN-2007", "purchase_date": "2026-10-01", "refund_date": "2026-11-01", "days_since_purchase": 31, "items": [{"sku": "SKU-107", "qty": 1, "price": 20.00}], "tender": "MC_VALID", "amount": 20.00},
+      "steps": ["Scan receipt for TXN-2007", "Select full refund", "Attempt to confirm refund"],
+      "expected": [
+        "POS blocks the refund and shows that the 30-day refund window has passed",
+        "$0.00 refunded to MC_VALID"
+      ],
+      "linked_questions": ["Q-01", "Q-02"]
+    },
+    {
+      "id": "TC-008",
+      "requirement_ids": ["R3"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Full refund of split-tender sale refunds the last-paid card first",
+      "preconditions": ["Sale TXN-3001 completed on 2026-10-20 at STR-0042, paid first with VISA_VALID $50.00, then MC_VALID $30.00", "Assumption: order is observable through the order of SAP refund messages, one per tender (Q-03, Q-08)"],
+      "test_data": {"txn": "TXN-3001", "items": [{"sku": "SKU-301", "qty": 2, "price": 40.00}], "payments_in_order": [{"tender": "VISA_VALID", "amount": 50.00}, {"tender": "MC_VALID", "amount": 30.00}], "refund_amount": 80.00},
+      "steps": ["Scan receipt for TXN-3001", "Select full refund", "Confirm refund", "Open the SAP stub inbox and find the messages with originalTxnId TXN-3001"],
+      "expected": [
+        "$30.00 refunded to MC_VALID",
+        "$50.00 refunded to VISA_VALID",
+        "SAP message with tenderType MC_VALID has an earlier timestamp than the message with tenderType VISA_VALID"
+      ],
+      "linked_questions": ["Q-03", "Q-08"]
+    },
+    {
+      "id": "TC-009",
+      "requirement_ids": ["R4"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Partial refund of one line item refunds only that item",
+      "preconditions": ["Sale TXN-4001 completed on 2026-10-22 at STR-0042, paid by MC_VALID, total $100.00", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-4001", "items": [{"sku": "SKU-401", "qty": 1, "price": 25.00}, {"sku": "SKU-402", "qty": 1, "price": 75.00}], "tender": "MC_VALID", "refund_items": [{"sku": "SKU-401", "qty": 1}], "refund_amount": 25.00},
+      "steps": ["Scan receipt for TXN-4001", "Select partial refund", "Select SKU-401 qty 1", "Confirm refund"],
+      "expected": [
+        "POS shows the refund for SKU-401 as completed",
+        "$25.00 refunded to MC_VALID",
+        "SAP message for TXN-4001 has amount 25.00"
+      ],
+      "linked_questions": ["Q-04"]
+    },
+    {
+      "id": "TC-010",
+      "requirement_ids": ["R4"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "Repeating a full refund on an already fully refunded sale is blocked",
+      "preconditions": ["Sale TXN-4002 completed on 2026-10-22 at STR-0042, paid by VISA_VALID, total $100.00", "TXN-4002 already fully refunded ($100.00) on 2026-11-01", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-4002", "items": [{"sku": "SKU-411", "qty": 1, "price": 100.00}], "tender": "VISA_VALID", "already_refunded": 100.00, "attempted_refund": 100.00},
+      "steps": ["Scan receipt for TXN-4002", "Select full refund", "Attempt to confirm refund"],
+      "expected": [
+        "POS blocks the refund and shows that the sale has no refundable amount left",
+        "Total refunded to VISA_VALID for TXN-4002 stays at $100.00",
+        "SAP stub inbox has exactly one refund message for TXN-4002"
+      ],
+      "linked_questions": ["Q-04"]
+    },
+    {
+      "id": "TC-011",
+      "requirement_ids": ["R4"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "Same line item cannot be refunded twice even when the running total stays below the original",
+      "preconditions": ["Sale TXN-4003 completed on 2026-10-22 at STR-0042, paid by MC_VALID, total $100.00", "SKU-421 already refunded ($25.00) on 2026-11-01", "Assumption: a line item already refunded cannot be refunded again (Q-12)", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-4003", "items": [{"sku": "SKU-421", "qty": 1, "price": 25.00}, {"sku": "SKU-422", "qty": 1, "price": 75.00}], "tender": "MC_VALID", "already_refunded": 25.00, "attempted_refund_items": [{"sku": "SKU-421", "qty": 1}]},
+      "steps": ["Scan receipt for TXN-4003", "Select partial refund", "Attempt to select SKU-421 qty 1", "Attempt to confirm refund"],
+      "expected": [
+        "POS does not allow SKU-421 to be refunded again",
+        "Total refunded to MC_VALID for TXN-4003 stays at $25.00",
+        "SAP stub inbox has exactly one refund message for TXN-4003"
+      ],
+      "linked_questions": ["Q-04", "Q-12"]
+    },
+    {
+      "id": "TC-012",
+      "requirement_ids": ["R4"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "Partial refund that would push the running total above the original amount is blocked",
+      "preconditions": ["Sale TXN-4004 completed on 2026-10-22 at STR-0042, paid by MC_VALID, total $100.00", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-4004", "items": [{"sku": "SKU-431", "qty": 4, "price": 25.00}], "tender": "MC_VALID", "first_refund": {"sku": "SKU-431", "qty": 3, "amount": 75.00}, "second_refund_attempt": {"sku": "SKU-431", "qty": 2, "amount": 50.00, "running_total_if_allowed": 125.00}},
+      "steps": ["Scan receipt for TXN-4004", "Select partial refund of SKU-431 qty 3", "Confirm refund", "Scan receipt for TXN-4004 again", "Attempt partial refund of SKU-431 qty 2", "Attempt to confirm refund"],
+      "expected": [
+        "First refund completes: $75.00 refunded to MC_VALID",
+        "POS blocks the second refund (running total would be $125.00, original is $100.00)",
+        "Total refunded to MC_VALID for TXN-4004 is $75.00"
+      ],
+      "linked_questions": ["Q-04"]
+    },
+    {
+      "id": "TC-013",
+      "requirement_ids": ["R5"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Refund of $650.00 completes after manager approval",
+      "preconditions": ["Sale TXN-5001 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "Manager MGR-01 is available at REG-03"],
+      "test_data": {"txn": "TXN-5001", "items": [{"sku": "SKU-501", "qty": 1, "price": 650.00}], "tender": "MC_VALID", "amount": 650.00, "manager": "MGR-01"},
+      "steps": ["Scan receipt for TXN-5001", "Select full refund", "Confirm refund", "MGR-01 enters PIN at the approval prompt"],
+      "expected": [
+        "POS shows a manager approval prompt before the refund is processed",
+        "POS shows the refund for TXN-5001 as completed after PIN entry",
+        "$650.00 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-014",
+      "requirement_ids": ["R5"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "Refund of $650.00 is not processed when manager approval is rejected",
+      "preconditions": ["Sale TXN-5002 completed on 2026-10-20 at STR-0042, paid by VISA_VALID", "Manager MGR-01 is available at REG-03", "Assumption: manager rejection cancels the refund (Q-06)"],
+      "test_data": {"txn": "TXN-5002", "items": [{"sku": "SKU-502", "qty": 1, "price": 650.00}], "tender": "VISA_VALID", "amount": 650.00, "manager": "MGR-01"},
+      "steps": ["Scan receipt for TXN-5002", "Select full refund", "Confirm refund", "MGR-01 rejects the request at the approval prompt"],
+      "expected": [
+        "POS shows the refund for TXN-5002 as not processed",
+        "$0.00 refunded to VISA_VALID",
+        "No store credit issued",
+        "No refund message for TXN-5002 in the SAP stub inbox"
+      ],
+      "linked_questions": ["Q-06"]
+    },
+    {
+      "id": "TC-015",
+      "requirement_ids": ["R5"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "Refund of $499.99 (just below limit) needs no manager approval",
+      "preconditions": ["Sale TXN-5003 completed on 2026-10-20 at STR-0042, paid by MC_VALID"],
+      "test_data": {"txn": "TXN-5003", "items": [{"sku": "SKU-503", "qty": 1, "price": 499.99}], "tender": "MC_VALID", "amount": 499.99},
+      "steps": ["Scan receipt for TXN-5003", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS does not show a manager approval prompt",
+        "$499.99 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-016",
+      "requirement_ids": ["R5"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "Refund of exactly $500.00 (at limit) needs no manager approval",
+      "preconditions": ["Sale TXN-5004 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "Assumption: 'over $500' means strictly greater than $500.00 (Q-05)"],
+      "test_data": {"txn": "TXN-5004", "items": [{"sku": "SKU-504", "qty": 1, "price": 500.00}], "tender": "MC_VALID", "amount": 500.00},
+      "steps": ["Scan receipt for TXN-5004", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS does not show a manager approval prompt",
+        "$500.00 refunded to MC_VALID"
+      ],
+      "linked_questions": ["Q-05"]
+    },
+    {
+      "id": "TC-017",
+      "requirement_ids": ["R5"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "Refund of $500.01 (just above limit) needs manager approval",
+      "preconditions": ["Sale TXN-5005 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "Manager MGR-01 is available at REG-03"],
+      "test_data": {"txn": "TXN-5005", "items": [{"sku": "SKU-505", "qty": 1, "price": 500.01}], "tender": "MC_VALID", "amount": 500.01, "manager": "MGR-01"},
+      "steps": ["Scan receipt for TXN-5005", "Select full refund", "Confirm refund", "MGR-01 enters PIN at the approval prompt"],
+      "expected": [
+        "POS shows a manager approval prompt before the refund is processed",
+        "$500.01 refunded to MC_VALID"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-018",
+      "requirement_ids": ["R4", "R5"],
+      "type": "combination",
+      "priority": "P1",
+      "title": "Partial refund of $380.00 on a $900.00 sale needs no manager approval",
+      "preconditions": ["Sale TXN-5006 completed on 2026-10-20 at STR-0042, paid by MC_VALID, total $900.00", "Assumption: the $500 limit applies to the amount of this refund, not the sale total (Q-05)", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-5006", "items": [{"sku": "SKU-551", "qty": 1, "price": 520.00}, {"sku": "SKU-552", "qty": 1, "price": 380.00}], "tender": "MC_VALID", "refund_items": [{"sku": "SKU-552", "qty": 1}], "refund_amount": 380.00},
+      "steps": ["Scan receipt for TXN-5006", "Select partial refund", "Select SKU-552 qty 1", "Confirm refund"],
+      "expected": [
+        "POS does not show a manager approval prompt",
+        "$380.00 refunded to MC_VALID"
+      ],
+      "linked_questions": ["Q-04", "Q-05"]
+    },
+    {
+      "id": "TC-019",
+      "requirement_ids": ["R6"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Refund to an expired card is issued as store credit",
+      "preconditions": ["Sale TXN-6001 completed on 2026-10-15 at STR-0042, paid by MC_EXPIRED (card now expired)"],
+      "test_data": {"txn": "TXN-6001", "items": [{"sku": "SKU-601", "qty": 1, "price": 70.00}], "tender": "MC_EXPIRED", "amount": 70.00},
+      "steps": ["Scan receipt for TXN-6001", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund issued as store credit",
+        "$70.00 issued as store credit",
+        "$0.00 refunded to MC_EXPIRED",
+        "SAP message for TXN-6001 has tenderType for store credit"
+      ],
+      "linked_questions": ["Q-08"]
+    },
+    {
+      "id": "TC-020",
+      "requirement_ids": ["R6"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "Refund to a closed Amex account is issued as store credit",
+      "preconditions": ["Sale TXN-6002 completed on 2026-10-15 at STR-0042, paid by AMEX_CLOSED (account now closed)"],
+      "test_data": {"txn": "TXN-6002", "items": [{"sku": "SKU-602", "qty": 1, "price": 90.00}], "tender": "AMEX_CLOSED", "amount": 90.00},
+      "steps": ["Scan receipt for TXN-6002", "Select full refund", "Confirm refund"],
+      "expected": [
+        "POS shows the refund issued as store credit",
+        "$90.00 issued as store credit",
+        "$0.00 refunded to AMEX_CLOSED",
+        "SAP message for TXN-6002 has tenderType for store credit"
+      ],
+      "linked_questions": ["Q-08"]
+    },
+    {
+      "id": "TC-021",
+      "requirement_ids": ["R6"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "Refund to a valid card is not converted to store credit",
+      "preconditions": ["Sale TXN-6003 completed on 2026-10-15 at STR-0042, paid by VISA_VALID"],
+      "test_data": {"txn": "TXN-6003", "items": [{"sku": "SKU-603", "qty": 1, "price": 55.00}], "tender": "VISA_VALID", "amount": 55.00},
+      "steps": ["Scan receipt for TXN-6003", "Select full refund", "Confirm refund"],
+      "expected": [
+        "$55.00 refunded to VISA_VALID",
+        "No store credit issued"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-022",
+      "requirement_ids": ["R7"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "SAP refund message contains all six required fields with correct values",
+      "preconditions": ["Sale TXN-7001 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "SAP stub set to fail 0 sends"],
+      "test_data": {"txn": "TXN-7001", "items": [{"sku": "SKU-701", "qty": 1, "price": 120.00}], "tender": "MC_VALID", "amount": 120.00},
+      "steps": ["Scan receipt for TXN-7001", "Select full refund", "Confirm refund and note the confirmation time", "Open the SAP stub inbox and find the message with originalTxnId TXN-7001"],
+      "expected": [
+        "SAP message field refundId is present and non-empty",
+        "SAP message field originalTxnId = TXN-7001",
+        "SAP message field amount = 120.00",
+        "SAP message field tenderType identifies MC_VALID",
+        "SAP message field storeId = STR-0042",
+        "SAP message field timestamp is on 2026-11-01 and not earlier than the noted confirmation time"
+      ],
+      "linked_questions": ["Q-08"]
+    },
+    {
+      "id": "TC-023",
+      "requirement_ids": ["R7"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "SAP refund message arrives within 5 minutes of refund confirmation",
+      "preconditions": ["Sale TXN-7002 completed on 2026-10-20 at STR-0042, paid by VISA_VALID", "SAP stub set to fail 0 sends", "Assumption: the 5 minutes start at refund confirmation and 5:00 exactly is a pass (Q-09)"],
+      "test_data": {"txn": "TXN-7002", "items": [{"sku": "SKU-702", "qty": 1, "price": 40.00}], "tender": "VISA_VALID", "amount": 40.00, "pass_thresholds": {"4:59": "pass", "5:00": "pass", "5:01": "fail"}},
+      "steps": ["Scan receipt for TXN-7002", "Select full refund", "Confirm refund and note the confirmation time to the second", "Watch the SAP stub inbox and note the arrival time of the message with originalTxnId TXN-7002", "Compute elapsed time = arrival time minus confirmation time"],
+      "expected": [
+        "SAP stub inbox contains a message with originalTxnId TXN-7002",
+        "Elapsed time is 5:00 or less (4:59 pass, 5:00 pass, 5:01 fail)"
+      ],
+      "linked_questions": ["Q-09"]
+    },
+    {
+      "id": "TC-024",
+      "requirement_ids": ["R7"],
+      "type": "negative",
+      "priority": "P1",
+      "title": "No SAP refund message is sent for a blocked refund",
+      "preconditions": ["Sale TXN-7003 completed on 2026-09-20 at STR-0042, paid by MC_VALID (42 days before 2026-11-01)", "Assumption: an out-of-window refund is blocked with no alternative offered (Q-02)"],
+      "test_data": {"txn": "TXN-7003", "items": [{"sku": "SKU-703", "qty": 1, "price": 30.00}], "tender": "MC_VALID", "amount": 30.00},
+      "steps": ["Scan receipt for TXN-7003", "Select full refund", "Attempt to confirm refund", "Wait 5 minutes", "Open the SAP stub inbox and search for originalTxnId TXN-7003"],
+      "expected": [
+        "POS blocks the refund",
+        "No message with originalTxnId TXN-7003 in the SAP stub inbox"
+      ],
+      "linked_questions": ["Q-02"]
+    },
+    {
+      "id": "TC-025",
+      "requirement_ids": ["R8"],
+      "type": "positive",
+      "priority": "P1",
+      "title": "SAP send succeeds on the first retry after one failure",
+      "preconditions": ["Sale TXN-8001 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "SAP stub set to fail the next 1 send"],
+      "test_data": {"txn": "TXN-8001", "items": [{"sku": "SKU-801", "qty": 1, "price": 50.00}], "tender": "MC_VALID", "amount": 50.00, "stub_failures": 1},
+      "steps": ["Scan receipt for TXN-8001", "Select full refund", "Confirm refund", "Open the SAP stub inbox", "Open POS Admin > Logs > Integration"],
+      "expected": [
+        "SAP stub inbox has exactly one message with originalTxnId TXN-8001",
+        "No error log entry for TXN-8001 in POS Admin > Logs > Integration"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-026",
+      "requirement_ids": ["R8"],
+      "type": "negative",
+      "priority": "P2",
+      "title": "No retry and no error log when the first SAP send succeeds",
+      "preconditions": ["Sale TXN-8002 completed on 2026-10-20 at STR-0042, paid by VISA_VALID", "SAP stub set to fail 0 sends"],
+      "test_data": {"txn": "TXN-8002", "items": [{"sku": "SKU-802", "qty": 1, "price": 50.00}], "tender": "VISA_VALID", "amount": 50.00, "stub_failures": 0},
+      "steps": ["Scan receipt for TXN-8002", "Select full refund", "Confirm refund", "Open the SAP stub inbox", "Open POS Admin > Logs > Integration"],
+      "expected": [
+        "SAP stub inbox has exactly one message with originalTxnId TXN-8002",
+        "No error log entry for TXN-8002 in POS Admin > Logs > Integration"
+      ],
+      "linked_questions": []
+    },
+    {
+      "id": "TC-027",
+      "requirement_ids": ["R8"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "SAP send succeeds on retry 2 (just below the 3-retry limit)",
+      "preconditions": ["Sale TXN-8003 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "SAP stub set to fail the next 2 sends", "Assumption: 3 retries means 1 original send + 3 retries = 4 attempts (Q-10)"],
+      "test_data": {"txn": "TXN-8003", "items": [{"sku": "SKU-803", "qty": 1, "price": 50.00}], "tender": "MC_VALID", "amount": 50.00, "stub_failures": 2},
+      "steps": ["Scan receipt for TXN-8003", "Select full refund", "Confirm refund", "Open the SAP stub inbox", "Open POS Admin > Logs > Integration"],
+      "expected": [
+        "SAP stub inbox has exactly one message with originalTxnId TXN-8003",
+        "No error log entry for TXN-8003 in POS Admin > Logs > Integration"
+      ],
+      "linked_questions": ["Q-09", "Q-10"]
+    },
+    {
+      "id": "TC-028",
+      "requirement_ids": ["R8"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "SAP send succeeds on retry 3 (at the 3-retry limit)",
+      "preconditions": ["Sale TXN-8004 completed on 2026-10-20 at STR-0042, paid by MC_VALID", "SAP stub set to fail the next 3 sends", "Assumption: 3 retries means 1 original send + 3 retries = 4 attempts (Q-10)"],
+      "test_data": {"txn": "TXN-8004", "items": [{"sku": "SKU-804", "qty": 1, "price": 50.00}], "tender": "MC_VALID", "amount": 50.00, "stub_failures": 3},
+      "steps": ["Scan receipt for TXN-8004", "Select full refund", "Confirm refund", "Open the SAP stub inbox", "Open POS Admin > Logs > Integration"],
+      "expected": [
+        "SAP stub inbox has exactly one message with originalTxnId TXN-8004",
+        "No error log entry for TXN-8004 in POS Admin > Logs > Integration"
+      ],
+      "linked_questions": ["Q-09", "Q-10"]
+    },
+    {
+      "id": "TC-029",
+      "requirement_ids": ["R8"],
+      "type": "boundary",
+      "priority": "P1",
+      "title": "Error log entry written when all retries fail (just above the 3-retry limit)",
+      "preconditions": ["Sale TXN-8005 completed on 2026-10-20 at STR-0042, paid by VISA_VALID", "SAP stub set to fail the next 4 sends", "Assumption: 3 retries means 1 original send + 3 retries = 4 attempts (Q-10)"],
+      "test_data": {"txn": "TXN-8005", "items": [{"sku": "SKU-805", "qty": 1, "price": 50.00}], "tender": "VISA_VALID", "amount": 50.00, "stub_failures": 4},
+      "steps": ["Scan receipt for TXN-8005", "Select full refund", "Confirm refund", "Open the SAP stub inbox", "Open POS Admin > Logs > Integration"],
+      "expected": [
+        "No message with originalTxnId TXN-8005 in the SAP stub inbox",
+        "Exactly one error log entry for the TXN-8005 refund in POS Admin > Logs > Integration"
+      ],
+      "linked_questions": ["Q-10", "Q-11"]
+    },
+    {
+      "id": "TC-030",
+      "requirement_ids": ["R3", "R4"],
+      "type": "combination",
+      "priority": "P1",
+      "title": "Partial refund on split tender fills the last-paid card first, then spills to the earlier card",
+      "preconditions": ["Sale TXN-3002 completed on 2026-10-24 at STR-0042, paid first with VISA_VALID $60.00, then MC_VALID $40.00", "Assumption: a partial refund is applied to the last-paid tender up to its paid amount, then to the previous tender (Q-03)", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-3002", "items": [{"sku": "SKU-311", "qty": 1, "price": 30.00}, {"sku": "SKU-312", "qty": 1, "price": 70.00}], "payments_in_order": [{"tender": "VISA_VALID", "amount": 60.00}, {"tender": "MC_VALID", "amount": 40.00}], "refund_items": [{"sku": "SKU-312", "qty": 1}], "refund_amount": 70.00},
+      "steps": ["Scan receipt for TXN-3002", "Select partial refund", "Select SKU-312 qty 1", "Confirm refund"],
+      "expected": [
+        "$40.00 refunded to MC_VALID",
+        "$30.00 refunded to VISA_VALID",
+        "SAP stub inbox shows amount 40.00 for tenderType MC_VALID and amount 30.00 for tenderType VISA_VALID"
+      ],
+      "linked_questions": ["Q-03", "Q-04", "Q-08"]
+    },
+    {
+      "id": "TC-031",
+      "requirement_ids": ["R3", "R5"],
+      "type": "combination",
+      "priority": "P1",
+      "title": "Split-tender refund of $700.00 needs one manager approval and refunds in reverse order",
+      "preconditions": ["Sale TXN-3003 completed on 2026-10-24 at STR-0042, paid first with VISA_VALID $400.00, then MC_VALID $300.00", "Manager MGR-01 is available at REG-03", "Assumption: the $500 limit applies to the total refund amount, not to each tender leg (Q-05)"],
+      "test_data": {"txn": "TXN-3003", "items": [{"sku": "SKU-321", "qty": 1, "price": 700.00}], "payments_in_order": [{"tender": "VISA_VALID", "amount": 400.00}, {"tender": "MC_VALID", "amount": 300.00}], "refund_amount": 700.00, "manager": "MGR-01"},
+      "steps": ["Scan receipt for TXN-3003", "Select full refund", "Confirm refund", "MGR-01 enters PIN at the approval prompt"],
+      "expected": [
+        "POS shows a manager approval prompt before any tender is refunded",
+        "$300.00 refunded to MC_VALID",
+        "$400.00 refunded to VISA_VALID",
+        "SAP message with tenderType MC_VALID has an earlier timestamp than the message with tenderType VISA_VALID"
+      ],
+      "linked_questions": ["Q-03", "Q-05", "Q-08"]
+    },
+    {
+      "id": "TC-032",
+      "requirement_ids": ["R3", "R6"],
+      "type": "combination",
+      "priority": "P1",
+      "title": "Split-tender refund where the last-paid card is expired: that leg becomes store credit",
+      "preconditions": ["Sale TXN-3004 completed on 2026-10-12 at STR-0042, paid first with VISA_VALID $50.00, then MC_EXPIRED $30.00 (card now expired)", "Assumption: only the expired card's portion is converted to store credit, and reverse order still applies (Q-07)"],
+      "test_data": {"txn": "TXN-3004", "items": [{"sku": "SKU-331", "qty": 1, "price": 80.00}], "payments_in_order": [{"tender": "VISA_VALID", "amount": 50.00}, {"tender": "MC_EXPIRED", "amount": 30.00}], "refund_amount": 80.00},
+      "steps": ["Scan receipt for TXN-3004", "Select full refund", "Confirm refund"],
+      "expected": [
+        "$30.00 issued as store credit",
+        "$0.00 refunded to MC_EXPIRED",
+        "$50.00 refunded to VISA_VALID",
+        "SAP stub inbox shows amount 30.00 with tenderType for store credit and amount 50.00 with tenderType VISA_VALID"
+      ],
+      "linked_questions": ["Q-03", "Q-07", "Q-08"]
+    },
+    {
+      "id": "TC-033",
+      "requirement_ids": ["R4"],
+      "type": "combination",
+      "priority": "P1",
+      "title": "Three partial refunds whose running total reaches the original amount all succeed, then a further refund is blocked",
+      "preconditions": ["Sale TXN-4005 completed on 2026-10-26 at STR-0042, paid by VISA_VALID, total $100.00", "Assumption: no tax is applied to test sales (Q-04)"],
+      "test_data": {"txn": "TXN-4005", "items": [{"sku": "SKU-441", "qty": 1, "price": 30.00}, {"sku": "SKU-442", "qty": 1, "price": 45.00}, {"sku": "SKU-443", "qty": 1, "price": 25.00}], "tender": "VISA_VALID", "refunds_in_order": [{"sku": "SKU-441", "amount": 30.00, "running_total": 30.00}, {"sku": "SKU-442", "amount": 45.00, "running_total": 75.00}, {"sku": "SKU-443", "amount": 25.00, "running_total": 100.00}]},
+      "steps": ["Scan receipt for TXN-4005, refund SKU-441 qty 1, confirm", "Scan receipt for TXN-4005, refund SKU-442 qty 1, confirm", "Scan receipt for TXN-4005, refund SKU-443 qty 1, confirm", "Scan receipt for TXN-4005 and attempt to refund SKU-441 qty 1 again"],
+      "expected": [
+        "All three partial refunds complete",
+        "Total refunded to VISA_VALID for TXN-4005 is $100.00",
+        "POS blocks the fourth refund attempt",
+        "SAP stub inbox has three refund messages for TXN-4005 with amounts 30.00, 45.00 and 25.00"
+      ],
+      "linked_questions": ["Q-04"]
+    }
+  ],
+  "open_questions": [
+    {"id": "Q-01", "requirement_id": "R2", "question": "Is day 30 inside the refund window? For a sale on 2026-10-02, is a refund on 2026-11-01 allowed (inclusive) or blocked (exclusive)?", "impacts": ["TC-006", "TC-007"]},
+    {"id": "Q-02", "requirement_id": "R2", "question": "What does POS do when a refund is outside the 30-day window: block it entirely, or offer an alternative (store credit, manager override)? What message is shown?", "impacts": ["TC-004", "TC-007", "TC-024"]},
+    {"id": "Q-03", "requirement_id": "R3", "question": "What does 'reverse order of payment' mean for a partial refund (fill the last-paid tender up to its paid amount, then the previous one?) and how can a tester observe the order on a full refund (screen, receipt, SAP timestamps)?", "impacts": ["TC-008", "TC-030", "TC-031", "TC-032"]},
+    {"id": "Q-04", "requirement_id": "R4", "question": "Does 'original amount' include tax? Is tax refunded proportionally on line-item refunds? The tests assume test sales carry no tax.", "impacts": ["TC-009", "TC-010", "TC-011", "TC-012", "TC-018", "TC-030", "TC-033"]},
+    {"id": "Q-05", "requirement_id": "R5", "question": "Is the $500 limit strictly greater than $500.00 (so $500.00 needs no approval)? Is it applied to the amount of the current refund, the original sale total, the cumulative refunds on the sale, or each tender leg?", "impacts": ["TC-016", "TC-018", "TC-031"]},
+    {"id": "Q-06", "requirement_id": "R5", "question": "How does a manager reject approval at the register, and what must happen afterwards (refund cancelled, message shown, anything logged)?", "impacts": ["TC-014"]},
+    {"id": "Q-07", "requirement_id": "R6", "question": "On a split-tender sale where one card is expired or closed, is only that card's portion issued as store credit, and does it keep its place in the reverse-order sequence?", "impacts": ["TC-032"]},
+    {"id": "Q-08", "requirement_id": "R7", "question": "Is one SAP message sent per refund or one per tender leg? What exact tenderType values are used for each card and for store credit?", "impacts": ["TC-008", "TC-019", "TC-020", "TC-022", "TC-030", "TC-031", "TC-032"]},
+    {"id": "Q-09", "requirement_id": "R7", "question": "When does the 5-minute clock start (refund confirmation?), does exactly 5:00 count as on time, and must retries (R8) also finish within the 5 minutes?", "impacts": ["TC-023", "TC-027", "TC-028"]},
+    {"id": "Q-10", "requirement_id": "R8", "question": "Does 'retries 3 times' mean 4 attempts in total (1 original + 3 retries) or 3 in total? What is the interval between retries?", "impacts": ["TC-027", "TC-028", "TC-029"]},
+    {"id": "Q-11", "requirement_id": "R8", "question": "What must the error log entry contain (refundId, originalTxnId, error reason, attempt count)? After the log is written, is the message ever resent or queued?", "impacts": ["TC-029"]},
+    {"id": "Q-12", "requirement_id": "R4", "question": "Can a line item that was already refunded be refunded again if the running total would still stay below the original amount? R4 only caps the total.", "impacts": ["TC-011"]}
+  ],
+  "coverage": {
+    "R1": ["TC-001", "TC-002"],
+    "R2": ["TC-003", "TC-004", "TC-005", "TC-006", "TC-007"],
+    "R3": ["TC-008", "TC-030", "TC-031", "TC-032"],
+    "R4": ["TC-009", "TC-010", "TC-011", "TC-012", "TC-018", "TC-030", "TC-033"],
+    "R5": ["TC-013", "TC-014", "TC-015", "TC-016", "TC-017", "TC-018", "TC-031"],
+    "R6": ["TC-019", "TC-020", "TC-021", "TC-032"],
+    "R7": ["TC-022", "TC-023", "TC-024"],
+    "R8": ["TC-025", "TC-026", "TC-027", "TC-028", "TC-029"]
+  },
+  "coverage_notes": [
+    "R3 has no standalone negative test: the only wrong outcome is refunding in forward order, which the positive and combination tests already check (e.g. TC-030 asserts the first-paid Visa receives only the spill-over $30.00).",
+    "R7 5-minute boundary: a tester cannot force POS to send at 4:59, 5:00 or 5:01, so TC-023 measures the actual elapsed time and applies the three thresholds as pass/fail criteria.",
+    "R4 'original amount' boundary is covered by TC-012 (below then above) and TC-033 (exactly at).",
+    "Transaction IDs, SKUs, prices and purchase dates are test setup data created in preconditions, because neither the BRD nor test_env provides sales. test_env does not say how back-dated sales or sales on MC_EXPIRED/AMEX_CLOSED (before they expired/closed) are created; the test environment owner needs to confirm seeding.",
+    "The BRD defines no exact POS screen text, so screen checks describe the state (completed, blocked, approval prompt) rather than exact wording.",
+    "SAP checks in non-R7 tests assume the stub is set to fail 0 sends unless the test says otherwise."
+  ]
+}
